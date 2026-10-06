@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Felipe Destefani — Eu faço sites</title>
-  <meta name="description" content="Oi, eu sou o Felipe e faço sites. Me chama se você quer um site pra você ou pro seu negócio.">
+  <title>Felipe Destefani — North Company</title>
+  <meta name="description" content="Oi, eu sou o Felipe, desenvolvedor na North Company. Faço sites e sistemas. Me chama se você quer um site pra você ou pro seu negócio.">
   <meta name="theme-color" content="#14306e">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="north.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script>document.documentElement.classList.add("js")</script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Person",
     "name": "Felipe Destefani da Silva",
-    "jobTitle": "Faz sites",
-    "image": "felipe.jpg"
+    "jobTitle": "Desenvolvedor",
+    "worksFor": { "@type": "Organization", "name": "North Company" }
   }
   </script>
 </head>
@@ -27,7 +28,7 @@
   <header class="header" id="topo">
     <div class="container header-inner">
       <a class="logo" href="#topo">
-        <img class="logo-photo" src="felipe.jpg" alt="" width="42" height="42">
+        <img class="logo-photo" src="north.png" alt="" width="42" height="42">
         <span class="logo-word">Felipe Destefani</span>
       </a>
       <nav class="nav" aria-label="Seções">
@@ -47,11 +48,12 @@
 
   <main id="conteudo">
     <section class="intro" id="sobre">
+      <div class="hero-glow" aria-hidden="true"></div>
       <div class="container">
         <div class="intro-copy">
-          <p class="role">Faço sites</p>
+          <p class="badge">Desenvolvedor na <strong>North Company</strong></p>
           <h1>Oi, eu sou o <span>Felipe</span>.</h1>
-          <p>Eu faço sites pra quem quer aparecer na internet. Pode ser pra você, pro seu trabalho ou pro seu negócio.</p>
+          <p>Eu faço sites e sistemas pra quem quer aparecer na internet. Pode ser pra você, pro seu trabalho ou pro seu negócio.</p>
           <p class="intro-links">
             <a class="btn btn-primary" href="#contato">Quero um site</a>
             <a class="text-link" href="#projetos">Ver meus projetos</a>
@@ -60,7 +62,26 @@
       </div>
     </section>
 
-    <section class="block" id="servicos">
+    <section class="stats" aria-label="Números">
+      <div class="container">
+        <ul class="stats-list">
+          <li>
+            <strong><span data-count="200">200</span><em>+</em></strong>
+            <span>Clientes</span>
+          </li>
+          <li>
+            <strong><span data-count="100">100</span><em>+</em></strong>
+            <span>Sites feitos</span>
+          </li>
+          <li>
+            <strong><span data-count="20">20</span><em>+</em></strong>
+            <span>Sistemas</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="block reveal" id="servicos">
       <div class="container split">
         <div>
           <h2>Como funciona</h2>
@@ -87,9 +108,9 @@
       </div>
     </section>
 
-    <section class="block" id="projetos">
-      <div class="container split">
-        <div>
+    <section class="block reveal" id="projetos">
+      <div class="container">
+        <div class="section-head">
           <h2>Sites que eu já fiz</h2>
           <p class="dek">Todos estão no ar. Pode clicar e dar uma olhada.</p>
         </div>
@@ -102,7 +123,7 @@
               </span>
               <h3>Achadinhos Sumaré</h3>
               <p>Catálogo de produtos com preço baixo.</p>
-              <span class="project-link">achadinhossumare.vercel.app →</span>
+              <span class="project-link">achadinhossumare.vercel.app<span class="arrow" aria-hidden="true">→</span></span>
             </a>
           </li>
           <li>
@@ -113,7 +134,7 @@
               </span>
               <h3>Central da Reversa</h3>
               <p>Catálogo de paletes com produto.</p>
-              <span class="project-link">centraldareversa.vercel.app →</span>
+              <span class="project-link">centraldareversa.vercel.app<span class="arrow" aria-hidden="true">→</span></span>
             </a>
           </li>
           <li>
@@ -124,7 +145,7 @@
               </span>
               <h3>Lari Lash Studio</h3>
               <p>Site de um estúdio de cílios em Nova Odessa.</p>
-              <span class="project-link">larilashstudio.vercel.app →</span>
+              <span class="project-link">larilashstudio.vercel.app<span class="arrow" aria-hidden="true">→</span></span>
             </a>
           </li>
         </ul>
@@ -132,6 +153,7 @@
     </section>
 
     <section class="block contact-block" id="contato">
+      <div class="contact-glow" aria-hidden="true"></div>
       <div class="container split">
         <div class="contact-copy">
           <h2>Bora conversar?</h2>
@@ -191,7 +213,7 @@
   <footer class="footer">
     <div class="container footer-inner">
       <a class="logo" href="#topo">
-        <img class="logo-photo" src="felipe.jpg" alt="" width="42" height="42">
+        <img class="logo-photo" src="north.png" alt="" width="42" height="42">
         <span class="logo-word">Felipe Destefani</span>
       </a>
       <div id="footer-social" class="footer-social" hidden></div>

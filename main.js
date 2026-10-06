@@ -64,6 +64,56 @@ const sectionObserver = new IntersectionObserver(
 
 sections.forEach((section) => sectionObserver.observe(section));
 
+const revealObserver = new IntersectionObserver(
+  (entries, observer) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("is-visible");
+      observer.unobserve(entry.target);
+    });
+  },
+  { threshold: 0.12 }
+);
+
+document.querySelectorAll(".reveal").forEach((el) => revealObserver.observe(el));
+
+const counters = document.querySelectorAll("[data-count]");
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function runCounter(el) {
+  const target = Number(el.dataset.count);
+  const duration = 1400;
+  const start = performance.now();
+
+  function tick(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = String(Math.round(target * eased));
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+if (!reduceMotion) {
+  counters.forEach((el) => {
+    el.textContent = "0";
+  });
+
+  const counterObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        runCounter(entry.target);
+        observer.unobserve(entry.target);
+      });
+    },
+    { threshold: 0.6 }
+  );
+
+  counters.forEach((el) => counterObserver.observe(el));
+}
+
 function formatPhone(value) {
   const digits = value.replace(/\D/g, "");
   if (digits.length === 13 && digits.startsWith("55")) {
