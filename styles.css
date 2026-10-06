@@ -489,13 +489,8 @@ h2 {
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.04em;
-  color: #c9d6f5;
-  font-variant-numeric: tabular-nums;
-  transition: color 0.25s;
-}
-
-.steps li:hover::before {
   color: var(--blue);
+  font-variant-numeric: tabular-nums;
 }
 
 .steps h3 {
