@@ -70,7 +70,7 @@ const revealObserver = new IntersectionObserver(
       observer.unobserve(entry.target);
     });
   },
-  { threshold: 0.12 }
+  { threshold: 0.05 }
 );
 
 document.querySelectorAll(".reveal").forEach((el) => revealObserver.observe(el));

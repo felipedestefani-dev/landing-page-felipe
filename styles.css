@@ -11,6 +11,7 @@
   --font: "Hanken Grotesk", "Segoe UI", sans-serif;
   --header: 72px;
   --radius: 14px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 *,
@@ -329,6 +330,10 @@ h2 {
   transform: translateY(-1px);
 }
 
+.btn:active {
+  transform: scale(0.98);
+}
+
 .btn-secondary,
 .btn-ghost {
   border-color: var(--line);
@@ -511,6 +516,11 @@ h2 {
   border-top: 2px solid #c7c7cc;
   transform: rotate(45deg);
   justify-self: end;
+  transition: transform 0.2s var(--ease);
+}
+
+.projects a:hover .project-chevron {
+  transform: translateX(3px) rotate(45deg);
 }
 
 /* Contact */
@@ -694,8 +704,8 @@ h2 {
 
 .js .reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transform: translateY(16px);
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
 }
 
 .js .reveal.is-visible {
@@ -703,8 +713,24 @@ h2 {
   transform: none;
 }
 
+.js .projects li {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
+}
+
+.js .reveal.is-visible .projects li {
+  opacity: 1;
+  transform: none;
+}
+
+.js .reveal.is-visible .projects li:nth-child(1) { transition-delay: 0.04s; }
+.js .reveal.is-visible .projects li:nth-child(2) { transition-delay: 0.08s; }
+.js .reveal.is-visible .projects li:nth-child(3) { transition-delay: 0.12s; }
+.js .reveal.is-visible .projects li:nth-child(4) { transition-delay: 0.16s; }
+
 .intro-copy > * {
-  animation: rise 0.8s ease both;
+  animation: rise 0.6s var(--ease) both;
 }
 
 .intro-copy > :nth-child(2) {
@@ -811,14 +837,16 @@ h2 {
     animation: none;
   }
 
-  .js .reveal {
+  .js .reveal,
+  .js .projects li {
     opacity: 1;
     transform: none;
     transition: none;
   }
 
   .btn,
-  .projects a {
+  .projects a,
+  .project-chevron {
     transition: none;
   }
 
