@@ -15,8 +15,6 @@ const success = document.querySelector("#form-success");
 const directList = document.querySelector("#direct-list");
 const footerSocial = document.querySelector("#footer-social");
 
-document.querySelector("#year").textContent = String(new Date().getFullYear());
-
 function setMenu(open) {
   document.body.classList.toggle("nav-open", open);
   toggle.setAttribute("aria-expanded", String(open));
@@ -150,9 +148,10 @@ if (site.linkedin) {
 
 if (channels.length) {
   directList.hidden = false;
-  footerSocial.hidden = false;
   channels.forEach((channel) => {
     addChannel(directList, channel.href, channel.label, channel.value, channel.blank);
+    if (channel.label === "WhatsApp") return;
+    footerSocial.hidden = false;
     const link = document.createElement("a");
     link.href = channel.href;
     link.textContent = channel.label;
