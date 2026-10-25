@@ -458,14 +458,12 @@ h2 {
 .project-logo {
   width: 62px;
   height: 62px;
-  border-radius: 16px;
+  border-radius: 50%;
   object-fit: cover;
   box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.08);
 }
 
 .project-logo.is-clean {
-  object-fit: contain;
-  border-radius: 50%;
   box-shadow: none;
   background: transparent;
 }
