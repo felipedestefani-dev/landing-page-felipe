@@ -435,7 +435,7 @@ h2 {
 
 .projects a {
   display: grid;
-  grid-template-columns: 62px minmax(0, 1fr) 16px;
+  grid-template-columns: auto minmax(0, 1fr) 16px;
   align-items: center;
   gap: 14px;
   min-height: 108px;
@@ -464,6 +464,17 @@ h2 {
 }
 
 .project-logo.is-clean {
+  border-radius: 0;
+  object-fit: contain;
+  box-shadow: none;
+  background: transparent;
+}
+
+.project-logo.is-full {
+  width: 62px;
+  height: 62px;
+  border-radius: 0;
+  object-fit: contain;
   box-shadow: none;
   background: transparent;
 }
