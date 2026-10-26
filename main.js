@@ -116,11 +116,13 @@ if (site.email) {
 
 if (site.whatsapp) {
   const digits = site.whatsapp.replace(/\D/g, "");
+  const texto = "Oi, Felipe! Quero um site.";
   channels.push({
-    href: `https://wa.me/${digits}`,
-    label: "WhatsApp",
-    value: formatPhone(site.whatsapp),
+    href: `https://wa.me/${digits}?text=${encodeURIComponent(texto)}`,
+    label: "Mandar no WhatsApp",
+    value: "",
     blank: true,
+    footer: false,
   });
 }
 
@@ -146,11 +148,11 @@ if (site.linkedin) {
   });
 }
 
-if (channels.length) {
+if (channels.length && directList) {
   directList.hidden = false;
   channels.forEach((channel) => {
     addChannel(directList, channel.href, channel.label, channel.value, channel.blank);
-    if (channel.label === "WhatsApp") return;
+    if (channel.footer === false || channel.label === "WhatsApp") return;
     footerSocial.hidden = false;
     const link = document.createElement("a");
     link.href = channel.href;
