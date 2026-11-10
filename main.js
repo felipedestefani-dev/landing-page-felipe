@@ -37,8 +37,84 @@ window.addEventListener("resize", () => {
   if (window.innerWidth > 820) setMenu(false);
 });
 
+const progress = document.querySelector(".scroll-progress");
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
 function onScroll() {
   header.classList.toggle("is-scrolled", window.scrollY > 8);
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  progress.style.setProperty("--progress", max > 0 ? String(window.scrollY / max) : "0");
+}
+
+function splitWords(element) {
+  let index = 0;
+  const walk = (node) => {
+    [...node.childNodes].forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const parts = child.textContent.split(/( +)/);
+        const fragment = document.createDocumentFragment();
+        parts.forEach((part) => {
+          if (!part) return;
+          if (/^ +$/.test(part)) {
+            fragment.append(part);
+            return;
+          }
+          const word = document.createElement("span");
+          word.className = "word";
+          word.style.setProperty("--i", String(index++));
+          word.textContent = part;
+          fragment.append(word);
+        });
+        child.replaceWith(fragment);
+      } else if (child.nodeType === Node.ELEMENT_NODE && child.tagName !== "BR") {
+        walk(child);
+      }
+    });
+  };
+  walk(element);
+}
+
+if (!reduceMotion) {
+  document.querySelectorAll("[data-words]").forEach(splitWords);
+}
+
+document.querySelectorAll(".stagger").forEach((list) => {
+  [...list.children].forEach((child, i) => child.style.setProperty("--i", String(i)));
+});
+
+document.querySelectorAll(".marquee").forEach((marquee) => {
+  const track = marquee.querySelector(".marquee-track");
+  const copy = track.cloneNode(true);
+  copy.setAttribute("aria-hidden", "true");
+  marquee.append(copy);
+});
+
+if (finePointer) {
+  document.querySelectorAll("[data-spotlight]").forEach((group) => {
+    const cards = [...group.querySelectorAll(".glow")];
+    group.addEventListener("pointermove", (event) => {
+      cards.forEach((card) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty("--x", `${event.clientX - rect.left}px`);
+        card.style.setProperty("--y", `${event.clientY - rect.top}px`);
+      });
+    });
+  });
+}
+
+if (finePointer && !reduceMotion) {
+  document.querySelectorAll("[data-magnetic]").forEach((el) => {
+    el.addEventListener("pointermove", (event) => {
+      const rect = el.getBoundingClientRect();
+      const x = event.clientX - rect.left - rect.width / 2;
+      const y = event.clientY - rect.top - rect.height / 2;
+      el.style.transform = `translate(${x * 0.25}px, ${y * 0.35}px)`;
+    });
+    el.addEventListener("pointerleave", () => {
+      el.style.transform = "";
+    });
+  });
 }
 
 onScroll();
@@ -116,7 +192,7 @@ if (site.email) {
 
 if (site.whatsapp) {
   const digits = site.whatsapp.replace(/\D/g, "");
-  const texto = "Oi, Felipe! Quero um site.";
+  const texto = "Oi! Quero um site.";
   channels.push({
     href: `https://wa.me/${digits}?text=${encodeURIComponent(texto)}`,
     label: "Mandar no WhatsApp",
@@ -201,7 +277,7 @@ form.addEventListener("submit", (event) => {
   const tipo = String(data.get("tipo") || "").trim();
   const mensagem = String(data.get("mensagem") || "").trim();
   const body = [
-    `Oi, Felipe! Meu nome é ${nome}.`,
+    `Oi, North Company! Meu nome é ${nome}.`,
     `E-mail: ${email}`,
     `Tipo de site: ${tipo}`,
     "",
