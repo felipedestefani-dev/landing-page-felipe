@@ -746,7 +746,6 @@ h2 {
   inset: 10% 15%;
   border-radius: 50%;
   background: radial-gradient(closest-side, rgba(var(--accent-rgb), 0.22), transparent);
-  filter: blur(20px);
   pointer-events: none;
 }
 
@@ -1669,6 +1668,24 @@ h2 {
   .glow::before,
   .glow::after {
     display: none;
+  }
+
+  .header {
+    background: rgba(10, 9, 8, 0.96);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .hero-beam {
+    filter: none;
+  }
+
+  .hero-beam-left {
+    animation: beam-in 2s var(--ease) 0.2s forwards;
+  }
+
+  .hero-beam-right {
+    animation: beam-in 2s var(--ease) 0.4s forwards;
   }
 }
 

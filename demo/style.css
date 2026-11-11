@@ -1285,6 +1285,21 @@ h2,
   animation: none;
 }
 
+.tour * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.tour .top {
+  background: var(--bg);
+}
+
+.idle *,
+.idle *::before,
+.idle *::after {
+  animation-play-state: paused !important;
+}
+
 /* Setinha do modo vídeo */
 
 .tour-cursor {

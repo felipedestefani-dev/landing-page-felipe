@@ -366,9 +366,12 @@ const taps = [
 const clamp = (value) => Math.min(1, Math.max(0, value));
 const ease = (value) => (value < 0.5 ? 2 * value * value : 1 - (-2 * value + 2) ** 2 / 2);
 const between = (t, start, end) => clamp((t - start) / (end - start));
-let tourT = 0;
+let tourT = -1;
 let tourBagKey = "";
+let tourSize;
+let tourStage = "";
 let followUntil = 0;
+let following = false;
 
 function startTour() {
   document.documentElement.classList.add("tour");
@@ -406,22 +409,33 @@ function placeCursor() {
 function followCursor() {
   placeCursor();
   if (performance.now() < followUntil) requestAnimationFrame(followCursor);
+  else following = false;
 }
 
-function tour(t) {
+function setValue(input, value) {
+  if (input.value !== value) input.value = value;
+}
+
+function tour(value) {
+  const t = clamp(value);
+  if (t === tourT) return;
   if (!document.documentElement.classList.contains("tour")) startTour();
-  tourT = clamp(t);
+  tourT = t;
 
   const shopTop = grid.getBoundingClientRect().top + window.scrollY - document.querySelector(".top").offsetHeight - 20;
-  window.scrollTo({ top: shopTop * ease(between(t, 0.02, 0.13)), behavior: "instant" });
+  const top = Math.round(shopTop * ease(between(t, 0.02, 0.13)));
+  if (Math.round(window.scrollY) !== top) window.scrollTo({ top, behavior: "instant" });
 
   const card = grid.querySelector(`[data-card="${TOUR_PRODUCT}"]`);
   card.classList.toggle("is-hover", t > 0.15 && t < 0.36);
 
-  const sheetOpen = t >= 0.215 && t < 0.355;
   fillQuick(TOUR_PRODUCT);
-  pickSize(t >= 0.3 ? TOUR_SIZE : null);
-  setLayer(sheet, sheetOpen);
+  const size = t >= 0.3 ? TOUR_SIZE : null;
+  if (size !== tourSize) {
+    tourSize = size;
+    pickSize(size);
+  }
+  setLayer(sheet, t >= 0.215 && t < 0.355);
 
   const inBag = t >= 0.355;
   const key = inBag ? "1" : "";
@@ -429,32 +443,40 @@ function tour(t) {
     tourBagKey = key;
     bag = inBag ? [{ id: TOUR_PRODUCT, size: TOUR_SIZE, qty: 1 }] : [];
     renderBag();
-    if (inBag) bump(bagCount);
+    if (inBag) {
+      bump(bagCount);
+      fillPay();
+      toast.textContent = `${byId(TOUR_PRODUCT).name} (${TOUR_SIZE}) na sacola`;
+    }
   }
-
-  if (t >= 0.355 && t < 0.41) {
-    toast.textContent = `${byId(TOUR_PRODUCT).name} (${TOUR_SIZE}) na sacola`;
-    toast.classList.add("is-on");
-  } else {
-    toast.classList.remove("is-on");
-  }
+  toast.classList.toggle("is-on", t >= 0.355 && t < 0.41);
 
   setLayer(drawer, t >= 0.415 && t < 0.505);
+  setLayer(pay, t >= 0.505);
 
-  const payOpen = t >= 0.505;
-  if (payOpen && inBag) fillPay();
-  setLayer(pay, payOpen);
-  payNome.value = TOUR_NOME.slice(0, Math.round(TOUR_NOME.length * between(t, 0.56, 0.62)));
-  payCep.value = TOUR_CEP.slice(0, Math.round(TOUR_CEP.length * between(t, 0.66, 0.68)));
+  setValue(payNome, TOUR_NOME.slice(0, Math.round(TOUR_NOME.length * between(t, 0.56, 0.62))));
+  setValue(payCep, TOUR_CEP.slice(0, Math.round(TOUR_CEP.length * between(t, 0.66, 0.68))));
   payNome.classList.toggle("is-focus", t >= 0.545 && t < 0.645);
   payCep.classList.toggle("is-focus", t >= 0.645 && t < 0.69);
   pickMethod(t >= 0.705 ? "pix" : null);
-  payStage(t < 0.755 ? "form" : t < 0.835 ? "loading" : "done");
-  pay.style.setProperty("--load", between(t, 0.755, 0.835).toFixed(3));
-  pay.style.setProperty("--done", between(t, 0.835, 1).toFixed(3));
+
+  const stage = t < 0.755 ? "form" : t < 0.835 ? "loading" : "done";
+  if (stage !== tourStage) {
+    tourStage = stage;
+    payStage(stage);
+  }
+  if (stage === "loading") pay.style.setProperty("--load", between(t, 0.755, 0.835).toFixed(3));
+  if (stage === "done") pay.style.setProperty("--done", between(t, 0.835, 1).toFixed(3));
 
   followUntil = performance.now() + 450;
-  requestAnimationFrame(followCursor);
+  if (!following) {
+    following = true;
+    requestAnimationFrame(followCursor);
+  }
 }
 
-window.sola = { tour };
+function idle(on) {
+  document.documentElement.classList.toggle("idle", on);
+}
+
+window.sola = { tour, idle };

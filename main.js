@@ -128,17 +128,17 @@ if (telas && deviceTabs && device) {
   const tabs = [...deviceTabs.querySelectorAll("[data-device]")];
   const frames = tabs.map((tab) => device.querySelector(`[data-screen="${tab.dataset.device}"]`));
 
-  const fitFrames = () => {
-    const width = screen.clientWidth;
-    const height = screen.clientHeight;
-    frames.forEach((frame) => {
-      const realWidth = Number(frame.dataset.width);
-      const scale = width / realWidth;
-      frame.style.width = `${realWidth}px`;
-      frame.style.height = `${(height - frame.offsetTop) / scale}px`;
-      frame.style.transform = `scale(${scale})`;
-    });
+  const activeFrame = () => frames.find((frame) => frame.classList.contains("is-active"));
+
+  const fitFrame = (frame) => {
+    const realWidth = Number(frame.dataset.width);
+    const scale = screen.clientWidth / realWidth;
+    frame.style.width = `${realWidth}px`;
+    frame.style.height = `${(screen.clientHeight - frame.offsetTop) / scale}px`;
+    frame.style.transform = `scale(${scale})`;
   };
+
+  const fitFrames = () => fitFrame(activeFrame());
 
   const fitDevice = () => {
     const base = parseFloat(getComputedStyle(stage).getPropertyValue("--base"));
@@ -163,6 +163,7 @@ if (telas && deviceTabs && device) {
       frame.classList.toggle("is-active", active);
       frame.toggleAttribute("inert", !active);
     });
+    fitFrame(activeFrame());
   };
 
   const pinDistance = () => telas.offsetHeight - pin.offsetHeight;
@@ -173,14 +174,23 @@ if (telas && deviceTabs && device) {
   };
 
   let tourProgress = 0;
+  let inView = false;
 
   const playFrame = (frame) => {
-    if (frameReady(frame)) frame.contentWindow.sola.tour(tourProgress);
+    if (!frameReady(frame)) return;
+    const live = inView && frame.classList.contains("is-active");
+    frame.contentWindow.sola.idle(!live);
+    if (live) frame.contentWindow.sola.tour(tourProgress);
   };
 
   const updateTelas = () => {
-    const scrolled = header.offsetHeight - telas.getBoundingClientRect().top;
-    tourProgress = Math.min(1, Math.max(0, scrolled / pinDistance()));
+    const rect = telas.getBoundingClientRect();
+    inView = rect.bottom > 0 && rect.top < window.innerHeight;
+    if (!inView) {
+      frames.forEach(playFrame);
+      return;
+    }
+    tourProgress = Math.min(1, Math.max(0, (header.offsetHeight - rect.top) / pinDistance()));
     const progress = tourProgress * tabs.length;
     const index = Math.min(tabs.length - 1, Math.floor(progress));
     const seg = Math.min(1, progress - index);
@@ -210,8 +220,18 @@ if (telas && deviceTabs && device) {
     });
   });
 
-  frames.forEach((frame) => {
-    frame.addEventListener("load", () => playFrame(frame));
+  const loadNext = (index) => {
+    const next = frames[index + 1];
+    if (next && !next.src) next.src = next.dataset.src;
+  };
+
+  frames.forEach((frame, index) => {
+    frame.addEventListener("load", () => {
+      if (!frame.src) return;
+      playFrame(frame);
+      loadNext(index);
+    });
+    if (frameReady(frame)) loadNext(index);
   });
 
   updateTelas();
