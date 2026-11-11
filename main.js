@@ -128,17 +128,29 @@ if (telas && deviceTabs && device) {
   const tabs = [...deviceTabs.querySelectorAll("[data-device]")];
   const frames = tabs.map((tab) => device.querySelector(`[data-screen="${tab.dataset.device}"]`));
 
-  const activeFrame = () => frames.find((frame) => frame.classList.contains("is-active"));
+  const sizes = {};
 
   const fitFrame = (frame) => {
+    const { width, height } = sizes[frame.dataset.screen];
     const realWidth = Number(frame.dataset.width);
-    const scale = screen.clientWidth / realWidth;
+    const scale = width / realWidth;
     frame.style.width = `${realWidth}px`;
-    frame.style.height = `${(screen.clientHeight - frame.offsetTop) / scale}px`;
+    frame.style.height = `${(height - frame.offsetTop) / scale}px`;
     frame.style.transform = `scale(${scale})`;
   };
 
-  const fitFrames = () => fitFrame(activeFrame());
+  const fitFrames = () => {
+    const current = device.dataset.device;
+    device.style.transition = "none";
+    tabs.forEach((tab) => {
+      device.dataset.device = tab.dataset.device;
+      sizes[tab.dataset.device] = { width: screen.clientWidth, height: screen.clientHeight };
+    });
+    device.dataset.device = current;
+    void device.offsetWidth;
+    device.style.transition = "";
+    frames.forEach(fitFrame);
+  };
 
   const fitDevice = () => {
     const base = parseFloat(getComputedStyle(stage).getPropertyValue("--base"));
@@ -149,9 +161,9 @@ if (telas && deviceTabs && device) {
     stage.style.setProperty("--pc-w", `${pcW}px`);
     device.style.setProperty("--fit", String(Math.min(1, stageH / base)));
     telas.style.marginBottom = `${-Math.max(0, below - 40)}px`;
+    fitFrames();
   };
 
-  new ResizeObserver(fitFrames).observe(screen);
   new ResizeObserver(fitDevice).observe(stage);
 
   const showDevice = (name) => {
@@ -163,7 +175,6 @@ if (telas && deviceTabs && device) {
       frame.classList.toggle("is-active", active);
       frame.toggleAttribute("inert", !active);
     });
-    fitFrame(activeFrame());
   };
 
   const pinDistance = () => telas.offsetHeight - pin.offsetHeight;
@@ -173,17 +184,27 @@ if (telas && deviceTabs && device) {
     return Boolean(doc && doc.readyState === "complete" && frame.contentWindow.sola);
   };
 
+  const loadNext = (index) => {
+    const next = frames[index + 1];
+    if (next && !next.src) next.src = next.dataset.src;
+  };
+
+  const startFrames = () => loadNext(-1);
+
   let tourProgress = 0;
   let inView = false;
 
-  const playFrame = (frame) => {
+  let warmIndex = -1;
+
+  const playFrame = (frame, index) => {
     if (!frameReady(frame)) return;
     const live = inView && frame.classList.contains("is-active");
     frame.contentWindow.sola.idle(!live);
-    if (live) frame.contentWindow.sola.tour(tourProgress);
+    if (live || (inView && index === warmIndex)) frame.contentWindow.sola.tour(tourProgress);
   };
 
   const updateTelas = () => {
+    if (window.scrollY > 0) startFrames();
     const rect = telas.getBoundingClientRect();
     inView = rect.bottom > 0 && rect.top < window.innerHeight;
     if (!inView) {
@@ -194,6 +215,7 @@ if (telas && deviceTabs && device) {
     const progress = tourProgress * tabs.length;
     const index = Math.min(tabs.length - 1, Math.floor(progress));
     const seg = Math.min(1, progress - index);
+    warmIndex = seg > 0.8 ? index + 1 : seg < 0.2 ? index - 1 : -1;
     showDevice(tabs[index].dataset.device);
     deviceTabs.style.setProperty("--seg", seg.toFixed(3));
     frames.forEach(playFrame);
@@ -220,19 +242,17 @@ if (telas && deviceTabs && device) {
     });
   });
 
-  const loadNext = (index) => {
-    const next = frames[index + 1];
-    if (next && !next.src) next.src = next.dataset.src;
-  };
-
   frames.forEach((frame, index) => {
     frame.addEventListener("load", () => {
       if (!frame.src) return;
       playFrame(frame);
       loadNext(index);
     });
-    if (frameReady(frame)) loadNext(index);
   });
+
+  const startLater = () => setTimeout(startFrames, 1500);
+  if (document.readyState === "complete") startLater();
+  else window.addEventListener("load", startLater, { once: true });
 
   updateTelas();
 }
