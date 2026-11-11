@@ -10,10 +10,7 @@ const header = document.querySelector(".header");
 const toggle = document.querySelector(".menu-toggle");
 const menu = document.querySelector("#menu");
 const menuLabel = toggle.querySelector(".sr-only");
-const form = document.querySelector("#contact-form");
-const success = document.querySelector("#form-success");
 const directList = document.querySelector("#direct-list");
-const footerSocial = document.querySelector("#footer-social");
 
 function setMenu(open) {
   document.body.classList.toggle("nav-open", open);
@@ -83,12 +80,38 @@ document.querySelectorAll(".stagger").forEach((list) => {
   [...list.children].forEach((child, i) => child.style.setProperty("--i", String(i)));
 });
 
-document.querySelectorAll(".marquee").forEach((marquee) => {
-  const track = marquee.querySelector(".marquee-track");
-  const copy = track.cloneNode(true);
-  copy.setAttribute("aria-hidden", "true");
-  marquee.append(copy);
-});
+const scrollLists = [...document.querySelectorAll("[data-scroll-in]")];
+
+function updateScrollIn() {
+  const vh = window.innerHeight;
+  scrollLists.forEach((list) => {
+    const columns = getComputedStyle(list).gridTemplateColumns.split(" ").length;
+    const listTop = list.getBoundingClientRect().top;
+    [...list.children].forEach((item, i) => {
+      const last = item.classList.contains("project-last");
+      const delay = last ? 0 : (i % columns) * 0.06 * vh;
+      const span = vh * (last ? 0.55 : 0.32);
+      const top = listTop + item.offsetTop - list.offsetTop;
+      const raw = (vh - top - delay) / span;
+      const p = Math.min(1, Math.max(0, raw));
+      item.style.setProperty("--p", (1 - (1 - p) ** 3).toFixed(3));
+    });
+  });
+}
+
+if (!reduceMotion && scrollLists.length) {
+  let scrollInFrame = 0;
+  const queueScrollIn = () => {
+    if (scrollInFrame) return;
+    scrollInFrame = requestAnimationFrame(() => {
+      scrollInFrame = 0;
+      updateScrollIn();
+    });
+  };
+  updateScrollIn();
+  window.addEventListener("scroll", queueScrollIn, { passive: true });
+  window.addEventListener("resize", queueScrollIn);
+}
 
 if (finePointer) {
   document.querySelectorAll("[data-spotlight]").forEach((group) => {
@@ -181,7 +204,7 @@ if (telas && deviceTabs && device) {
 
   const frameReady = (frame) => {
     const doc = frame.contentDocument;
-    return Boolean(doc && doc.readyState === "complete" && frame.contentWindow.sola);
+    return Boolean(doc && doc.readyState === "complete" && frame.contentWindow.exemplo);
   };
 
   const loadNext = (index) => {
@@ -199,8 +222,8 @@ if (telas && deviceTabs && device) {
   const playFrame = (frame, index) => {
     if (!frameReady(frame)) return;
     const live = inView && frame.classList.contains("is-active");
-    frame.contentWindow.sola.idle(!live);
-    if (live || (inView && index === warmIndex)) frame.contentWindow.sola.tour(tourProgress);
+    frame.contentWindow.exemplo.idle(!live);
+    if (live || (inView && index === warmIndex)) frame.contentWindow.exemplo.tour(tourProgress);
   };
 
   const updateTelas = () => {
@@ -257,6 +280,81 @@ if (telas && deviceTabs && device) {
   updateTelas();
 }
 
+const flow = document.querySelector(".flow");
+
+if (flow) {
+  const steps = [...flow.querySelectorAll(".flow-step")];
+  const items = [...flow.querySelectorAll(".fw-list [data-at]")];
+  const loaders = [...flow.querySelectorAll("[data-load]")];
+  const typingBubble = flow.querySelector(".fw-typing");
+  const status = flow.querySelector("[data-flow-status]");
+  const input = flow.querySelector("[data-flow-input]");
+  const compose = flow.querySelector(".fw-compose");
+  const clamp = (value) => Math.min(1, Math.max(0, value));
+  const at = (element) => Number(element.dataset.at);
+  const isOut = (element) => element.classList.contains("fw-out");
+  items.forEach((element) => {
+    if (element.tagName === "P" && isOut(element)) element.dataset.text = element.firstChild.textContent.trim();
+  });
+  let lastKey = "";
+
+  const copy = steps[0].querySelector(".flow-copy");
+
+  const updateFlow = () => {
+    const stickyTop = parseFloat(getComputedStyle(copy).top);
+    const line = Number.isNaN(stickyTop) ? window.innerHeight * 0.6 : stickyTop + 1;
+    let scene = 0;
+    let local = 0;
+    steps.forEach((step, index) => {
+      const rect = step.getBoundingClientRect();
+      if (rect.top > line) return;
+      scene = index;
+      local = clamp((line - rect.top) / rect.height);
+    });
+
+    const progress = scene + local;
+    const key = progress.toFixed(3);
+    if (key === lastKey) return;
+    lastKey = key;
+
+    steps.forEach((step, index) => step.classList.toggle("is-active", index === scene));
+    items.forEach((element) => {
+      element.classList.toggle("on", progress >= at(element));
+      if (isOut(element)) element.classList.toggle("read", progress >= at(element) + 0.1);
+    });
+    loaders.forEach((element) => element.classList.toggle("done", progress >= Number(element.dataset.load)));
+
+    const next = items.find((element) => progress < at(element));
+    const typing = Boolean(next && !isOut(next) && progress >= at(next) - 0.12);
+    typingBubble.classList.toggle("on", typing);
+    const statusText = typing ? "digitando…" : "online";
+    if (status.textContent !== statusText) status.textContent = statusText;
+    status.classList.toggle("is-typing", typing);
+
+    let draft = "";
+    if (next && next.dataset.text) {
+      const typed = clamp((progress - at(next) + 0.16) / 0.12);
+      draft = next.dataset.text.slice(0, Math.round(next.dataset.text.length * typed));
+    }
+    if (input.textContent !== draft) input.textContent = draft;
+    compose.classList.toggle("has-text", draft.length > 0);
+  };
+
+  let flowTicking = false;
+  const requestFlow = () => {
+    if (flowTicking) return;
+    flowTicking = true;
+    requestAnimationFrame(() => {
+      flowTicking = false;
+      updateFlow();
+    });
+  };
+
+  window.addEventListener("scroll", requestFlow, { passive: true });
+  window.addEventListener("resize", requestFlow);
+  updateFlow();
+}
+
 onScroll();
 window.addEventListener("scroll", onScroll, { passive: true });
 
@@ -291,17 +389,6 @@ const revealObserver = new IntersectionObserver(
 
 document.querySelectorAll(".reveal").forEach((el) => revealObserver.observe(el));
 
-function formatPhone(value) {
-  const digits = value.replace(/\D/g, "");
-  if (digits.length === 13 && digits.startsWith("55")) {
-    return `+55 (${digits.slice(2, 4)}) ${digits.slice(4, 9)}-${digits.slice(9)}`;
-  }
-  if (digits.length === 12 && digits.startsWith("55")) {
-    return `+55 (${digits.slice(2, 4)}) ${digits.slice(4, 8)}-${digits.slice(8)}`;
-  }
-  return value.trim();
-}
-
 function addChannel(list, href, label, value, blank) {
   const item = document.createElement("li");
   const link = document.createElement("a");
@@ -332,13 +419,12 @@ if (site.email) {
 
 if (site.whatsapp) {
   const digits = site.whatsapp.replace(/\D/g, "");
-  const texto = "Oi! Quero um site.";
+  const texto = "Oi! Quero fazer um orçamento de site.";
   channels.push({
     href: `https://wa.me/${digits}?text=${encodeURIComponent(texto)}`,
-    label: "Mandar no WhatsApp",
+    label: "Faça seu orçamento",
     value: "",
     blank: true,
-    footer: false,
   });
 }
 
@@ -368,84 +454,5 @@ if (channels.length && directList) {
   directList.hidden = false;
   channels.forEach((channel) => {
     addChannel(directList, channel.href, channel.label, channel.value, channel.blank);
-    if (channel.footer === false || channel.label === "WhatsApp") return;
-    footerSocial.hidden = false;
-    const link = document.createElement("a");
-    link.href = channel.href;
-    link.textContent = channel.label;
-    if (channel.blank) {
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-    }
-    footerSocial.append(link);
   });
 }
-
-const copyButton = success.querySelector("[data-copy]");
-const anotherButton = success.querySelector("[data-reset]");
-const mailLink = success.querySelector("[data-mail]");
-const whatsLink = success.querySelector("[data-whatsapp]");
-const messageBox = success.querySelector("textarea");
-const successName = success.querySelector("[data-name]");
-
-copyButton.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(messageBox.value);
-    copyButton.textContent = "Copiado!";
-  } catch {
-    messageBox.focus();
-    messageBox.select();
-    copyButton.textContent = "Seleciona e copia";
-  }
-});
-
-anotherButton.addEventListener("click", () => {
-  form.reset();
-  form.hidden = false;
-  success.hidden = true;
-  copyButton.textContent = "Copiar";
-  form.querySelector("[name='nome']").focus();
-});
-
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const data = new FormData(form);
-  if (String(data.get("empresa") || "").trim()) return;
-
-  const nome = String(data.get("nome") || "").trim();
-  const email = String(data.get("email") || "").trim();
-  const tipo = String(data.get("tipo") || "").trim();
-  const mensagem = String(data.get("mensagem") || "").trim();
-  const body = [
-    `Oi, North Company! Meu nome é ${nome}.`,
-    `E-mail: ${email}`,
-    `Tipo de site: ${tipo}`,
-    "",
-    mensagem,
-  ].join("\n");
-  const subject = "Quero um site";
-
-  successName.textContent = nome.split(/\s+/)[0];
-  messageBox.value = body;
-
-  if (site.email) {
-    const href = `mailto:${site.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    mailLink.hidden = false;
-    mailLink.href = href;
-    window.location.href = href;
-  } else {
-    mailLink.hidden = true;
-  }
-
-  if (site.whatsapp) {
-    const digits = site.whatsapp.replace(/\D/g, "");
-    whatsLink.hidden = false;
-    whatsLink.href = `https://wa.me/${digits}?text=${encodeURIComponent(body)}`;
-  } else {
-    whatsLink.hidden = true;
-  }
-
-  form.hidden = true;
-  success.hidden = false;
-  success.focus();
-});

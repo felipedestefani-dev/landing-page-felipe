@@ -1,384 +1,245 @@
-const categories = { corrida: "Corrida", basquete: "Basquete", casual: "Casual" };
-
 const products = [
-  { id: "volt-trainer", name: "Volt Trainer", cat: "corrida", price: 599, tag: "Novo" },
-  { id: "flash-run", name: "Flash Run", cat: "corrida", price: 519, old: 649 },
-  { id: "court-high", name: "Court High", cat: "basquete", price: 899, tag: "Novo" },
-  { id: "air-lume", name: "Air Lume", cat: "casual", price: 699 },
-  { id: "shadow-knit", name: "Shadow Knit", cat: "corrida", price: 579 },
-  { id: "dunk-pastel", name: "Dunk Pastel", cat: "basquete", price: 799 },
-  { id: "cloud-pastel", name: "Cloud Pastel", cat: "casual", price: 599, old: 749 },
-  { id: "jump-retro", name: "Jump Retro", cat: "basquete", price: 949 },
-  { id: "classic-vinho", name: "Classic Vinho", cat: "casual", price: 399 },
-  { id: "terra-low", name: "Terra Low", cat: "casual", price: 699 },
-  { id: "clean-white", name: "Clean White", cat: "casual", price: 359, old: 449 },
-  { id: "night-low", name: "Night Low", cat: "casual", price: 699, tag: "Novo" },
-];
-
-const sizes = [37, 38, 39, 40, 41, 42, 43, 44];
-const soldOut = { "court-high": [37, 44], "jump-retro": [38], "air-lume": [43] };
+  { id: "air-fryer", name: "Fritadeira Air Fryer Philco Redstone 9,5L", price: 329.9, cat: "Cozinha" },
+  { id: "caixa-som", name: "Caixa de som Pulse MultiLed", price: 1099, old: 1399, cat: "Som" },
+  { id: "chaleira", name: "Chaleira Elétrica Philco Digital Glass 1,7L", price: 229.9, cat: "Cozinha" },
+  { id: "aspirador", name: "Aspirador Vertical Britânia 1250W", price: 139.9, cat: "Limpeza" },
+  { id: "cafeteira", name: "Cafeteira Elétrica Oster Compacta Inox", price: 99.9, old: 129.9, cat: "Cozinha" },
+  { id: "liquidificador", name: "Liquidificador Philco Turbo 3,1L", price: 159.9, cat: "Cozinha" },
+  { id: "forno", name: "Forno Elétrico Dako Supreme 44L com Grill", price: 429.9, cat: "Cozinha" },
+  { id: "panela-pressao", name: "Panela de Pressão Elétrica Mondial 5L", price: 319.9, old: 379.9, cat: "Cozinha" },
+].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
 const money = (value) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const normalize = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const byId = (id) => products.find((product) => product.id === id);
 
 const grid = document.querySelector("#grid");
-const filters = [...document.querySelectorAll("[data-filter]")];
-const favs = new Set();
-let bag = [];
+const empty = document.querySelector(".catalog-empty");
+const search = document.querySelector("#busca");
+const searchField = search.closest(".ios-field");
+const category = document.querySelector("#categoria");
 
-function renderGrid() {
-  grid.innerHTML = products
-    .map((product) => {
-      const off = product.old ? Math.round((1 - product.price / product.old) * 100) : 0;
-      const badge = off ? `<span class="tag tag-off">-${off}%</span>` : product.tag ? `<span class="tag">${product.tag}</span>` : "";
-      return `
-        <article class="card" data-cat="${product.cat}" data-card="${product.id}">
-          <div class="card-media">
-            <img src="img/${product.id}.webp?v=2" alt="${product.name}" loading="lazy">
-            ${badge}
-            <button class="fav" type="button" data-fav="${product.id}" aria-label="Favoritar ${product.name}" aria-pressed="false">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
-            </button>
-            <button class="quick-add" type="button" data-quick="${product.id}">Adicionar <span aria-hidden="true">+</span></button>
-          </div>
-          <div class="card-info">
-            <div>
-              <h3>${product.name}</h3>
-              <p>${categories[product.cat]}</p>
-            </div>
-            <p class="price">${product.old ? `<s>${money(product.old)}</s>` : ""}${money(product.price)}</p>
-          </div>
-        </article>`;
-    })
-    .join("");
-}
+const waIcon =
+  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.4-.7-2.8-1.1-4.6-4-4.8-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2.1 1-2.4c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l2 .9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>';
 
-function applyFilter(filter) {
-  filters.forEach((button) => button.classList.toggle("is-active", button.dataset.filter === filter));
-  grid.querySelectorAll(".card").forEach((card, index) => {
-    const show = filter === "todos" || card.dataset.cat === filter;
+grid.innerHTML = products
+  .map(
+    (product) => `
+      <article class="product-card" data-card="${product.id}">
+        <div class="thumb">
+          <img src="img/p/${product.id}.webp" alt="${product.name}" loading="lazy" decoding="async">
+          ${product.old ? '<span class="badge-promo">Oferta</span>' : ""}
+        </div>
+        <div class="body">
+          <h3>${product.name}</h3>
+          <p class="price">${product.old ? `<s>${money(product.old)}</s>` : ""}${money(product.price)}</p>
+          <a class="buy-btn" href="#" data-buy="${product.id}">${waIcon}Comprar</a>
+        </div>
+      </article>`
+  )
+  .join("");
+
+const categories = [...new Set(products.map((product) => product.cat))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+category.innerHTML = `<option value="">Todas as categorias</option>${categories.map((name) => `<option>${name}</option>`).join("")}`;
+
+const cards = [...grid.querySelectorAll("[data-card]")];
+
+function applyFilter() {
+  const query = normalize(search.value.trim());
+  let shown = 0;
+  cards.forEach((card) => {
+    const product = byId(card.dataset.card);
+    const show = (!category.value || product.cat === category.value) && (!query || normalize(product.name).includes(query));
     card.hidden = !show;
-    if (show) {
-      card.style.setProperty("--i", String(index % 8));
-      card.classList.remove("is-in");
-      void card.offsetWidth;
-      card.classList.add("is-in");
-    }
+    if (show) shown += 1;
   });
+  empty.hidden = shown > 0;
 }
 
-renderGrid();
+search.addEventListener("input", applyFilter);
+category.addEventListener("change", applyFilter);
 
-filters.forEach((button) => button.addEventListener("click", () => applyFilter(button.dataset.filter)));
+/* WhatsApp */
 
-document.querySelectorAll("[data-filter-link]").forEach((link) => {
-  link.addEventListener("click", () => applyFilter(link.dataset.filterLink));
-});
+const wa = document.querySelector("[data-wa]");
+const waList = wa.querySelector("[data-wa-list]");
+const waTyping = wa.querySelector("[data-wa-typing]");
+const waInput = wa.querySelector("[data-wa-input]");
+const waCompose = wa.querySelector(".wa-compose");
+const waSend = wa.querySelector("[data-wa-send]");
+const waStatus = wa.querySelector("[data-wa-status]");
+const waLast = wa.querySelector("[data-wa-last]");
+const waLastTime = wa.querySelector("[data-wa-last-time]");
 
-/* Camadas: aviso, janela de tamanho, sacola e pagamento */
+const ticks =
+  '<svg class="wa-ticks" viewBox="0 0 17 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 6l3 3 6.5-7.5"/><path class="tick-2" d="M7.5 9l6.5-7.5"/></svg>';
 
-const toast = document.querySelector(".toast");
-let toastTimer;
+const escapeHtml = (text) => text.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[char]);
+const formatWa = (text) => escapeHtml(text).replace(/\*([^*\n]+)\*/g, "<b>$1</b>");
 
-function showToast(text) {
-  toast.textContent = text;
-  toast.classList.add("is-on");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove("is-on"), 1800);
+function orderText(product) {
+  const value = product.old ? `De ${money(product.old)} por ${money(product.price)}` : money(product.price);
+  return ["Olá! Tenho interesse neste produto:", "", `*Nome:* ${product.name}`, `*Valor:* ${value}`, "", "Vi no site da Onda Eletro."].join("\n");
 }
 
-function bump(element) {
-  element.classList.remove("bump");
-  void element.offsetWidth;
-  element.classList.add("bump");
+function clock() {
+  return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
-function setLayer(layer, open) {
-  const isOpen = !layer.hidden && layer.dataset.open === "1";
+function addMsg(from, text, time) {
+  const messages = waList.querySelectorAll(".wa-msg");
+  const previous = messages[messages.length - 1];
+  const msg = document.createElement("div");
+  msg.className = `wa-msg wa-${from}`;
+  if (!previous || !previous.classList.contains(`wa-${from}`)) msg.classList.add("wa-first");
+  msg.dataset.text = text;
+  msg.dataset.time = time;
+  msg.innerHTML = `${formatWa(text)}<span class="wa-meta">${time}${from === "out" ? ticks : ""}</span>`;
+  waList.insertBefore(msg, waTyping);
+  return msg;
+}
+
+function setInput(text) {
+  if (waInput.textContent !== text) waInput.textContent = text;
+  waCompose.classList.toggle("has-text", text.length > 0);
+}
+
+function setTyping(on) {
+  waTyping.hidden = !on;
+  waStatus.textContent = on ? "digitando…" : "online";
+  waStatus.classList.toggle("is-typing", on);
+  waLast.classList.toggle("is-typing", on);
+  if (on) waLast.textContent = "digitando…";
+  else updateLast();
+}
+
+function updateLast() {
+  const shown = [...waList.querySelectorAll(".wa-msg:not([hidden])")];
+  const last = shown[shown.length - 1];
+  if (!last) return;
+  waLast.textContent = last.dataset.text.split("\n")[0].replace(/\*/g, "");
+  waLastTime.textContent = last.dataset.time;
+}
+
+function setChat(open) {
+  const isOpen = !wa.hidden && wa.dataset.open === "1";
   if (open === isOpen) return;
-  clearTimeout(layer.closeTimer);
-  layer.dataset.open = open ? "1" : "";
+  clearTimeout(wa.closeTimer);
+  wa.dataset.open = open ? "1" : "";
   if (open) {
-    layer.hidden = false;
-    requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.add("is-open")));
+    wa.hidden = false;
+    requestAnimationFrame(() => requestAnimationFrame(() => wa.classList.add("is-open")));
   } else {
-    layer.classList.remove("is-open");
-    layer.closeTimer = setTimeout(() => {
-      layer.hidden = true;
-    }, 320);
+    wa.classList.remove("is-open");
+    wa.closeTimer = setTimeout(() => {
+      wa.hidden = true;
+    }, 400);
   }
 }
 
-const favCount = document.querySelector("[data-fav-count]");
+let replyTimers = [];
 
-const sheet = document.querySelector("[data-sheet]");
-const sizesBox = sheet.querySelector(".sizes");
-const addSize = sheet.querySelector("[data-add-size]");
-let quickProduct = null;
-let quickSize = null;
-
-function fillQuick(id) {
-  const product = byId(id);
-  if (quickProduct === product) return;
-  quickProduct = product;
-  sheet.querySelector(".quick-img").src = `img/${product.id}.webp?v=2`;
-  sheet.querySelector(".quick-img").alt = product.name;
-  sheet.querySelector(".quick-cat").textContent = categories[product.cat];
-  sheet.querySelector(".quick-name").textContent = product.name;
-  sheet.querySelector(".quick-price").innerHTML = `${product.old ? `<s>${money(product.old)}</s>` : ""}${money(product.price)} <small>ou 10x de ${money(product.price / 10)}</small>`;
-  const out = soldOut[product.id] || [];
-  sizesBox.innerHTML = sizes
-    .map((size) => `<button type="button" data-size="${size}" ${out.includes(size) ? "disabled" : ""}>${size}</button>`)
-    .join("");
-  pickSize(null);
-}
-
-function pickSize(size) {
-  quickSize = size;
-  sizesBox.querySelectorAll("[data-size]").forEach((button) => {
-    button.classList.toggle("is-active", Number(button.dataset.size) === size);
-  });
-  addSize.disabled = size === null;
-  addSize.textContent = size === null ? "Escolha um tamanho" : `Adicionar à sacola · ${money(quickProduct.price)}`;
-}
-
-function openQuick(id) {
-  quickProduct = null;
-  fillQuick(id);
-  setLayer(sheet, true);
-}
-
-sizesBox.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-size]");
-  if (button) pickSize(Number(button.dataset.size));
-});
-
-addSize.addEventListener("click", () => {
-  const line = bag.find((item) => item.id === quickProduct.id && item.size === quickSize);
-  if (line) line.qty += 1;
-  else bag.push({ id: quickProduct.id, size: quickSize, qty: 1 });
-  renderBag();
-  setLayer(sheet, false);
-  bump(bagCount);
-  showToast(`${quickProduct.name} (${quickSize}) na sacola`);
-});
-
-const drawer = document.querySelector("[data-drawer]");
-const bagList = drawer.querySelector(".bag-list");
-const bagEmpty = drawer.querySelector(".bag-empty");
-const bagCount = document.querySelector("[data-bag-count]");
-const checkout = drawer.querySelector("[data-checkout]");
-
-function bagTotals() {
-  return bag.reduce(
-    (sum, item) => ({ items: sum.items + item.qty, total: sum.total + item.qty * byId(item.id).price }),
-    { items: 0, total: 0 }
-  );
-}
-
-function renderBag() {
-  bagList.innerHTML = bag
-    .map((item, index) => {
-      const product = byId(item.id);
-      return `
-        <li>
-          <img src="img/${product.id}.webp?v=2" alt="">
-          <div>
-            <strong>${product.name}</strong>
-            <span>Tamanho ${item.size} · ${money(product.price * item.qty)}</span>
-          </div>
-          <div class="qty">
-            <button type="button" data-dec="${index}" aria-label="Tirar um">−</button>
-            <span>${item.qty}</span>
-            <button type="button" data-inc="${index}" aria-label="Pôr mais um">+</button>
-          </div>
-        </li>`;
-    })
-    .join("");
-  const { items, total } = bagTotals();
-  bagCount.hidden = items === 0;
-  bagCount.textContent = String(items);
-  bagEmpty.hidden = items > 0;
-  checkout.disabled = items === 0;
-  drawer.querySelector("[data-bag-total]").textContent = money(total);
-}
-
-const pay = document.querySelector("[data-pay-layer]");
-const payForm = pay.querySelector("[data-pay-form]");
-const payLoading = pay.querySelector("[data-pay-loading]");
-const payDone = pay.querySelector("[data-pay-done]");
-const payButton = pay.querySelector("[data-pay]");
-const payNome = pay.querySelector("[data-pay-nome]");
-const payCep = pay.querySelector("[data-pay-cep]");
-const methods = [...pay.querySelectorAll("[data-method]")];
-const confetti = pay.querySelector(".confetti");
-let payTimer;
-
-confetti.innerHTML = Array.from({ length: 28 }, (_, i) => {
-  const x = (i * 37) % 100;
-  const delay = (i % 7) * 0.05;
-  const turn = (i % 2 ? 1 : -1) * (200 + ((i * 53) % 340));
-  return `<i style="--x:${x}%;--d:${delay}s;--r:${turn}deg;--c:${i % 4}"></i>`;
-}).join("");
-
-function fillPay() {
-  const first = bag[0] && byId(bag[0].id);
-  const { items, total } = bagTotals();
-  pay.querySelector("[data-pay-img]").src = first ? `img/${first.id}.webp?v=2` : "";
-  pay.querySelector("[data-pay-name]").textContent = items > 1 ? `${items} itens` : first ? first.name : "";
-  pay.querySelector("[data-pay-detail]").textContent = items === 1 ? `Tamanho ${bag[0].size}` : "Frete grátis";
-  pay.querySelector("[data-pay-total]").textContent = money(total);
-  payButton.textContent = `Pagar ${money(total)}`;
-}
-
-function pickMethod(name) {
-  methods.forEach((button) => button.classList.toggle("is-active", button.dataset.method === name));
-}
-
-function payStage(stage) {
-  payForm.hidden = stage !== "form";
-  payLoading.hidden = stage !== "loading";
-  payDone.hidden = stage !== "done";
-}
-
-function openPay() {
-  fillPay();
-  payStage("form");
-  setLayer(drawer, false);
-  setLayer(pay, true);
-}
-
-methods.forEach((button) => button.addEventListener("click", () => pickMethod(button.dataset.method)));
-
-payButton.addEventListener("click", () => {
-  if (!methods.some((button) => button.classList.contains("is-active"))) pickMethod("pix");
-  payStage("loading");
-  clearTimeout(payTimer);
-  payTimer = setTimeout(() => {
-    payStage("done");
-    bag = [];
-    renderBag();
-  }, 1600);
-});
-
-document.addEventListener("click", (event) => {
+grid.addEventListener("click", (event) => {
+  const buy = event.target.closest("[data-buy]");
+  if (!buy) return;
+  event.preventDefault();
   if (document.documentElement.classList.contains("tour")) return;
-
-  const fav = event.target.closest("[data-fav]");
-  if (fav) {
-    const id = fav.dataset.fav;
-    if (favs.has(id)) favs.delete(id);
-    else favs.add(id);
-    fav.setAttribute("aria-pressed", String(favs.has(id)));
-    bump(fav);
-    favCount.hidden = favs.size === 0;
-    favCount.textContent = String(favs.size);
-    if (favs.has(id)) showToast(`${byId(id).name} nos favoritos`);
-    return;
-  }
-
-  const quick = event.target.closest("[data-quick]");
-  if (quick) {
-    openQuick(quick.dataset.quick);
-    return;
-  }
-
-  const inc = event.target.closest("[data-inc]");
-  const dec = event.target.closest("[data-dec]");
-  if (inc || dec) {
-    const index = Number(inc ? inc.dataset.inc : dec.dataset.dec);
-    bag[index].qty += inc ? 1 : -1;
-    if (bag[index].qty <= 0) bag.splice(index, 1);
-    renderBag();
-    return;
-  }
-
-  if (event.target.closest("[data-open-bag]")) {
-    setLayer(drawer, true);
-    return;
-  }
-
-  if (event.target.closest("[data-checkout]")) {
-    openPay();
-    return;
-  }
-
-  const close = event.target.closest("[data-close]");
-  if (close) setLayer(close.closest(".sheet"), false);
+  setInput(orderText(byId(buy.dataset.buy)));
+  setChat(true);
 });
+
+waSend.addEventListener("click", () => {
+  const text = waInput.innerText.trim();
+  if (!text || document.documentElement.classList.contains("tour")) return;
+  const msg = addMsg("out", text, clock());
+  setInput("");
+  updateLast();
+  replyTimers.forEach(clearTimeout);
+  replyTimers = [
+    setTimeout(() => msg.classList.add("is-delivered"), 700),
+    setTimeout(() => msg.classList.add("is-read"), 1400),
+    setTimeout(() => setTyping(true), 1900),
+    setTimeout(() => {
+      setTyping(false);
+      addMsg("in", "Oi! Tem sim 😊 Quer retirar na loja ou receber em casa?", clock());
+      updateLast();
+    }, 3600),
+  ];
+});
+
+waInput.addEventListener("input", () => waCompose.classList.toggle("has-text", waInput.textContent.trim().length > 0));
+
+wa.querySelector("[data-wa-close]").addEventListener("click", () => setChat(false));
 
 document.addEventListener("keydown", (event) => {
-  if (event.key !== "Escape") return;
-  document.querySelectorAll(".sheet:not([hidden])").forEach((layer) => setLayer(layer, false));
+  if (event.key === "Escape") setChat(false);
 });
-
-const newsForm = document.querySelector(".news-form");
-newsForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  newsForm.hidden = true;
-  document.querySelector(".news-done").hidden = false;
-});
-
-renderBag();
 
 /* Modo vídeo: a página de fora manda o progresso (0 a 1) e a compra acontece sozinha */
 
 const cursor = document.querySelector(".tour-cursor");
-const TOUR_PRODUCT = "flash-run";
-const TOUR_SIZE = 41;
-const TOUR_NOME = "Ana Souza";
-const TOUR_CEP = "13170-000";
+const header = document.querySelector(".site-header");
+const toolbar = document.querySelector(".catalog-toolbar");
+const TOUR_PRODUCT = "air-fryer";
+const TOUR_QUERY = "air fryer";
+const TOUR_ANSWER = "Receber em casa, por favor!";
+const BUY = `[data-buy="${TOUR_PRODUCT}"]`;
+
+const script = [
+  { from: "out", text: () => orderText(byId(TOUR_PRODUCT)), time: "14:32", at: 0.465, delivered: 0.48, read: 0.5 },
+  { from: "in", text: () => "Oi! Tem sim 😊 Quer retirar na loja ou receber em casa?", time: "14:33", at: 0.59 },
+  { from: "out", text: () => TOUR_ANSWER, time: "14:35", at: 0.825, delivered: 0.84, read: 0.855 },
+  { from: "in", text: () => "Fechado! Já te mando o valor da entrega ✅", time: "14:36", at: 0.93 },
+];
+const typingWindows = [
+  [0.52, 0.59],
+  [0.865, 0.93],
+];
 
 const path = [
-  { t: 0.1, at: "start" },
-  { t: 0.18, at: `[data-quick="${TOUR_PRODUCT}"]` },
-  { t: 0.215, at: `[data-quick="${TOUR_PRODUCT}"]` },
-  { t: 0.27, at: `[data-size="${TOUR_SIZE}"]` },
-  { t: 0.3, at: `[data-size="${TOUR_SIZE}"]` },
-  { t: 0.33, at: "[data-add-size]" },
-  { t: 0.355, at: "[data-add-size]" },
-  { t: 0.39, at: ".top [data-open-bag]" },
-  { t: 0.415, at: ".top [data-open-bag]" },
-  { t: 0.47, at: "[data-checkout]" },
-  { t: 0.505, at: "[data-checkout]" },
-  { t: 0.54, at: "[data-pay-nome]" },
-  { t: 0.62, at: "[data-pay-nome]" },
-  { t: 0.64, at: "[data-pay-cep]" },
-  { t: 0.67, at: "[data-pay-cep]" },
-  { t: 0.69, at: '[data-method="pix"]' },
-  { t: 0.705, at: '[data-method="pix"]' },
-  { t: 0.73, at: "[data-pay]" },
-  { t: 0.755, at: "[data-pay]" },
+  { t: 0.17, at: "start" },
+  { t: 0.2, at: "#busca" },
+  { t: 0.29, at: "#busca" },
+  { t: 0.33, at: BUY },
+  { t: 0.395, at: BUY },
+  { t: 0.44, at: "[data-wa-send]" },
+  { t: 0.5, at: "[data-wa-send]" },
+  { t: 0.69, at: "start" },
+  { t: 0.71, at: "[data-wa-input]" },
+  { t: 0.79, at: "[data-wa-input]" },
+  { t: 0.81, at: "[data-wa-send]" },
+  { t: 0.85, at: "[data-wa-send]" },
 ];
 
 const taps = [
-  [0.195, 0.215],
-  [0.285, 0.3],
-  [0.34, 0.355],
-  [0.4, 0.415],
-  [0.49, 0.505],
-  [0.545, 0.56],
-  [0.645, 0.66],
-  [0.695, 0.705],
-  [0.74, 0.755],
+  [0.2, 0.215],
+  [0.38, 0.395],
+  [0.45, 0.465],
+  [0.71, 0.725],
+  [0.81, 0.825],
 ];
 
 const clamp = (value) => Math.min(1, Math.max(0, value));
 const ease = (value) => (value < 0.5 ? 2 * value * value : 1 - (-2 * value + 2) ** 2 / 2);
 const between = (t, start, end) => clamp((t - start) / (end - start));
+const within = (t, [start, end]) => t >= start && t < end;
 let tourT = -1;
-let tourBagKey = "";
-let tourSize;
-let tourStage = "";
+let tourMsgs = [];
+let tourChatKey = "";
 let followUntil = 0;
 let following = false;
 
 function startTour() {
   document.documentElement.classList.add("tour");
-  favs.clear();
-  favCount.hidden = true;
-  bag = [];
-  renderBag();
+  replyTimers.forEach(clearTimeout);
+  waList.querySelectorAll(".wa-msg").forEach((msg) => msg.remove());
+  tourMsgs = script.map((line) => {
+    const msg = addMsg(line.from, line.text(), line.time);
+    msg.hidden = true;
+    return msg;
+  });
+  tourChatKey = "";
+  category.value = "";
 }
 
 function pointOf(selector) {
@@ -392,7 +253,7 @@ function pointOf(selector) {
 
 function placeCursor() {
   const t = tourT;
-  cursor.classList.toggle("is-on", t > 0.1 && t < 0.77);
+  cursor.classList.toggle("is-on", (t > 0.17 && t < 0.49) || (t > 0.69 && t < 0.85));
   cursor.classList.toggle("is-tap", taps.some(([start, end]) => t >= start && t <= end));
   let next = path.findIndex((step) => step.t >= t);
   if (next === -1) next = path.length - 1;
@@ -412,8 +273,12 @@ function followCursor() {
   else following = false;
 }
 
-function setValue(input, value) {
-  if (input.value !== value) input.value = value;
+function scrollFor(t) {
+  const toolTop = Math.max(0, toolbar.getBoundingClientRect().top + window.scrollY - header.offsetHeight - 14);
+  const max = document.documentElement.scrollHeight - innerHeight;
+  const deep = Math.max(toolTop, Math.min(max, toolTop + innerHeight * 1.4));
+  if (t < 0.13) return deep * ease(between(t, 0.02, 0.12));
+  return deep + (toolTop - deep) * ease(between(t, 0.13, 0.18));
 }
 
 function tour(value) {
@@ -422,51 +287,42 @@ function tour(value) {
   if (!document.documentElement.classList.contains("tour")) startTour();
   tourT = t;
 
-  const shopTop = grid.getBoundingClientRect().top + window.scrollY - document.querySelector(".top").offsetHeight - 20;
-  const top = Math.round(shopTop * ease(between(t, 0.02, 0.13)));
+  const query = TOUR_QUERY.slice(0, Math.round(TOUR_QUERY.length * between(t, 0.22, 0.29)));
+  if (search.value !== query) {
+    search.value = query;
+    applyFilter();
+  }
+  searchField.classList.toggle("is-focus", t >= 0.215 && t < 0.395);
+
+  const top = Math.round(scrollFor(t));
   if (Math.round(window.scrollY) !== top) window.scrollTo({ top, behavior: "instant" });
 
-  const card = grid.querySelector(`[data-card="${TOUR_PRODUCT}"]`);
-  card.classList.toggle("is-hover", t > 0.15 && t < 0.36);
+  grid.querySelector(`[data-card="${TOUR_PRODUCT}"]`).classList.toggle("is-hover", t >= 0.31 && t < 0.4);
+  document.querySelector(BUY).classList.toggle("is-press", t >= 0.38 && t < 0.395);
 
-  fillQuick(TOUR_PRODUCT);
-  const size = t >= 0.3 ? TOUR_SIZE : null;
-  if (size !== tourSize) {
-    tourSize = size;
-    pickSize(size);
-  }
-  setLayer(sheet, t >= 0.215 && t < 0.355);
+  setChat(t >= 0.395);
 
-  const inBag = t >= 0.355;
-  const key = inBag ? "1" : "";
-  if (key !== tourBagKey) {
-    tourBagKey = key;
-    bag = inBag ? [{ id: TOUR_PRODUCT, size: TOUR_SIZE, qty: 1 }] : [];
-    renderBag();
-    if (inBag) {
-      bump(bagCount);
-      fillPay();
-      toast.textContent = `${byId(TOUR_PRODUCT).name} (${TOUR_SIZE}) na sacola`;
+  script.forEach((line, index) => {
+    const msg = tourMsgs[index];
+    msg.hidden = t < line.at;
+    if (line.delivered) {
+      msg.classList.toggle("is-delivered", t >= line.delivered);
+      msg.classList.toggle("is-read", t >= line.read);
     }
+  });
+
+  let draft = "";
+  if (t < 0.465) draft = script[0].text();
+  else if (t >= 0.725 && t < 0.825) draft = TOUR_ANSWER.slice(0, Math.round(TOUR_ANSWER.length * between(t, 0.73, 0.79)));
+  setInput(draft);
+  waInput.classList.toggle("is-focus", (t >= 0.395 && t < 0.465) || (t >= 0.725 && t < 0.825));
+  waSend.classList.toggle("is-press", (t >= 0.45 && t < 0.465) || (t >= 0.81 && t < 0.825));
+  const typing = typingWindows.some((range) => within(t, range));
+  const chatKey = `${tourMsgs.map((msg) => (msg.hidden ? 0 : 1)).join("")}${typing ? 1 : 0}`;
+  if (chatKey !== tourChatKey) {
+    tourChatKey = chatKey;
+    setTyping(typing);
   }
-  toast.classList.toggle("is-on", t >= 0.355 && t < 0.41);
-
-  setLayer(drawer, t >= 0.415 && t < 0.505);
-  setLayer(pay, t >= 0.505);
-
-  setValue(payNome, TOUR_NOME.slice(0, Math.round(TOUR_NOME.length * between(t, 0.56, 0.62))));
-  setValue(payCep, TOUR_CEP.slice(0, Math.round(TOUR_CEP.length * between(t, 0.66, 0.68))));
-  payNome.classList.toggle("is-focus", t >= 0.545 && t < 0.645);
-  payCep.classList.toggle("is-focus", t >= 0.645 && t < 0.69);
-  pickMethod(t >= 0.705 ? "pix" : null);
-
-  const stage = t < 0.755 ? "form" : t < 0.835 ? "loading" : "done";
-  if (stage !== tourStage) {
-    tourStage = stage;
-    payStage(stage);
-  }
-  if (stage === "loading") pay.style.setProperty("--load", between(t, 0.755, 0.835).toFixed(3));
-  if (stage === "done") pay.style.setProperty("--done", between(t, 0.835, 1).toFixed(3));
 
   followUntil = performance.now() + 450;
   if (!following) {
@@ -479,4 +335,4 @@ function idle(on) {
   document.documentElement.classList.toggle("idle", on);
 }
 
-window.sola = { tour, idle };
+window.exemplo = { tour, idle };
