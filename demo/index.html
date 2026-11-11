@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>SOLA Sneakers — site de exemplo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=8">
+</head>
+<body>
+  <div class="promo" aria-label="Avisos">
+    <div class="promo-track">
+      <span>Frete grátis acima de R$ 299</span>
+      <span>Troca grátis em até 30 dias</span>
+      <span>Até 10x sem juros</span>
+      <span>Frete grátis acima de R$ 299</span>
+      <span>Troca grátis em até 30 dias</span>
+      <span>Até 10x sem juros</span>
+    </div>
+  </div>
+
+  <header class="top">
+    <nav class="top-nav" aria-label="Seções">
+      <a href="#loja" data-filter-link="todos">Lançamentos</a>
+      <a href="#loja" data-filter-link="corrida">Corrida</a>
+      <a href="#loja" data-filter-link="basquete">Basquete</a>
+      <a href="#loja" data-filter-link="casual">Casual</a>
+    </nav>
+    <a class="logo" href="#inicio">SOLA<sup>®</sup></a>
+    <div class="top-actions">
+      <button class="icon-btn" type="button" aria-label="Favoritos">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+        <span class="badge" data-fav-count hidden>0</span>
+      </button>
+      <button class="icon-btn" type="button" data-open-bag aria-label="Abrir sacola">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <span class="badge" data-bag-count hidden>0</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="hero" id="inicio">
+    <div class="hero-copy">
+      <p class="eyebrow"><span>Novo</span> Volt Trainer</p>
+      <h1>Corra<br>na frente.</h1>
+      <p class="hero-text">Leve, macio e com amortecimento que devolve energia a cada passo.</p>
+      <div class="hero-actions">
+        <button class="btn btn-dark" type="button" data-quick="volt-trainer">Comprar · R$ 599</button>
+        <a class="btn btn-ghost" href="#loja">Ver coleção</a>
+      </div>
+    </div>
+    <div class="hero-media">
+      <img src="img/hero.webp?v=2" alt="Tênis Volt Trainer laranja">
+      <svg class="sticker" viewBox="0 0 120 120" aria-hidden="true">
+        <defs><path id="circle" d="M60 60m-44 0a44 44 0 1 1 88 0a44 44 0 1 1-88 0"/></defs>
+        <circle cx="60" cy="60" r="58"/>
+        <text><textPath href="#circle">NOVA COLEÇÃO • NOVA COLEÇÃO • </textPath></text>
+        <path class="sticker-arrow" d="M48 72l24-24M54 48h18v18"/>
+      </svg>
+      <p class="spec"><strong>230 g</strong> por pé</p>
+    </div>
+  </section>
+
+  <div class="words" aria-hidden="true">
+    <div class="words-track">
+      <span>Corrida</span><i>✦</i><span>Basquete</span><i>✦</i><span>Casual</span><i>✦</i>
+      <span>Corrida</span><i>✦</i><span>Basquete</span><i>✦</i><span>Casual</span><i>✦</i>
+    </div>
+  </div>
+
+  <section class="shop" id="loja">
+    <div class="shop-head">
+      <h2>Lançamentos</h2>
+      <div class="filters" role="tablist" aria-label="Filtrar">
+        <button type="button" data-filter="todos" class="is-active">Todos</button>
+        <button type="button" data-filter="corrida">Corrida</button>
+        <button type="button" data-filter="basquete">Basquete</button>
+        <button type="button" data-filter="casual">Casual</button>
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="street">
+    <img src="img/street.webp" alt="Pessoa usando tênis laranja na rua" loading="lazy">
+    <div class="street-copy">
+      <h2>Feito<br>pra rua.</h2>
+      <p>A linha casual que vai do trabalho ao rolê sem trocar de tênis.</p>
+      <a class="btn btn-orange" href="#loja" data-filter-link="casual">Ver casual</a>
+    </div>
+  </section>
+
+  <section class="perks">
+    <div>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
+      <h3>Frete grátis</h3>
+      <p>Em compras acima de R$ 299.</p>
+    </div>
+    <div>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3L20 9"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5.3L4 15"/><path d="M4 20v-5h5"/></svg>
+      <h3>Troca grátis</h3>
+      <p>Não serviu? Troca em até 30 dias.</p>
+    </div>
+    <div>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg>
+      <h3>Até 10x sem juros</h3>
+      <p>No cartão, sem complicação.</p>
+    </div>
+  </section>
+
+  <section class="news">
+    <h2>Ganhe 10% na primeira compra</h2>
+    <form class="news-form">
+      <label class="sr-only" for="news-email">Seu e-mail</label>
+      <input id="news-email" type="email" placeholder="Seu e-mail" required>
+      <button class="btn btn-dark" type="submit">Quero o cupom</button>
+    </form>
+    <p class="news-done" hidden>Pronto! Seu cupom é <strong>SOLA10</strong>.</p>
+  </section>
+
+  <footer class="foot">
+    <p class="foot-logo">SOLA<sup>®</sup></p>
+    <div class="foot-cols">
+      <div>
+        <h3>Loja</h3>
+        <a href="#loja">Lançamentos</a>
+        <a href="#loja">Corrida</a>
+        <a href="#loja">Casual</a>
+      </div>
+      <div>
+        <h3>Ajuda</h3>
+        <a href="#inicio">Trocas</a>
+        <a href="#inicio">Entregas</a>
+        <a href="#inicio">Tamanhos</a>
+      </div>
+    </div>
+    <p class="foot-note">Site de exemplo feito pela North Company.</p>
+  </footer>
+
+  <div class="sheet" data-sheet hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-label="Escolher tamanho">
+      <button class="close" type="button" data-close aria-label="Fechar">×</button>
+      <div class="quick">
+        <img class="quick-img" src="" alt="">
+        <div class="quick-info">
+          <p class="quick-cat"></p>
+          <h2 class="quick-name"></h2>
+          <p class="quick-price"></p>
+        </div>
+        <div class="quick-buy">
+          <p class="quick-label">Escolha o tamanho</p>
+          <div class="sizes"></div>
+          <button class="btn btn-dark btn-full" type="button" data-add-size disabled>Escolha um tamanho</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet drawer" data-drawer hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <aside class="drawer-panel" aria-label="Sacola">
+      <div class="drawer-head">
+        <h2>Sacola</h2>
+        <button class="close" type="button" data-close aria-label="Fechar">×</button>
+      </div>
+      <ul class="bag-list"></ul>
+      <p class="bag-empty">Sua sacola está vazia.</p>
+      <div class="drawer-foot">
+        <p class="bag-total"><span>Total</span> <strong data-bag-total>R$ 0,00</strong></p>
+        <button class="btn btn-dark btn-full" type="button" data-checkout>Finalizar compra</button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="sheet pay" data-pay-layer hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="pay-panel" role="dialog" aria-modal="true" aria-label="Pagamento">
+      <button class="close" type="button" data-close aria-label="Fechar">×</button>
+      <div class="pay-form" data-pay-form>
+        <h2>Pagamento</h2>
+        <div class="pay-summary">
+          <img data-pay-img src="" alt="">
+          <div>
+            <strong data-pay-name></strong>
+            <span data-pay-detail></span>
+          </div>
+          <strong data-pay-total></strong>
+        </div>
+        <label class="pay-field">
+          <span>Nome</span>
+          <input data-pay-nome type="text" placeholder="Seu nome" autocomplete="name">
+        </label>
+        <label class="pay-field">
+          <span>CEP</span>
+          <input data-pay-cep type="text" placeholder="00000-000" inputmode="numeric" autocomplete="postal-code">
+        </label>
+        <p class="pay-label">Forma de pagamento</p>
+        <div class="pay-methods">
+          <button type="button" data-method="pix"><b>Pix</b><small>Aprovado na hora</small></button>
+          <button type="button" data-method="cartao"><b>Cartão</b><small>Até 10x sem juros</small></button>
+        </div>
+        <button class="btn btn-dark btn-full" type="button" data-pay>Pagar</button>
+      </div>
+      <div class="pay-loading" data-pay-loading hidden>
+        <span class="spinner" aria-hidden="true"></span>
+        <p>Processando pagamento…</p>
+        <div class="pay-bar"><i></i></div>
+      </div>
+      <div class="pay-done" data-pay-done hidden>
+        <div class="confetti" aria-hidden="true"></div>
+        <svg class="done-check" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="36"/><path d="M24 41l11 11 21-23"/></svg>
+        <h2>Pedido confirmado!</h2>
+        <p>Pedido #1048 · chega em até 3 dias úteis.</p>
+        <p class="pay-demo">Compra de exemplo: nada foi cobrado.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" role="status"></div>
+
+  <div class="tour-cursor" aria-hidden="true">
+    <svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z"/></svg>
+  </div>
+
+  <script src="app.js?v=6"></script>
+</body>
+</html>

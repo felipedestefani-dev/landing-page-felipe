@@ -117,6 +117,106 @@ if (finePointer && !reduceMotion) {
   });
 }
 
+const telas = document.querySelector(".telas");
+const deviceTabs = document.querySelector(".device-tabs");
+const device = document.querySelector("#device");
+
+if (telas && deviceTabs && device) {
+  const pin = telas.querySelector(".telas-pin");
+  const stage = device.parentElement;
+  const screen = device.querySelector(".device-screen");
+  const tabs = [...deviceTabs.querySelectorAll("[data-device]")];
+  const frames = tabs.map((tab) => device.querySelector(`[data-screen="${tab.dataset.device}"]`));
+
+  const fitFrames = () => {
+    const width = screen.clientWidth;
+    const height = screen.clientHeight;
+    frames.forEach((frame) => {
+      const realWidth = Number(frame.dataset.width);
+      const scale = width / realWidth;
+      frame.style.width = `${realWidth}px`;
+      frame.style.height = `${(height - frame.offsetTop) / scale}px`;
+      frame.style.transform = `scale(${scale})`;
+    });
+  };
+
+  const fitDevice = () => {
+    const base = parseFloat(getComputedStyle(stage).getPropertyValue("--base"));
+    const stageH = stage.clientHeight;
+    const pcW = Math.min(1000, stage.clientWidth / 1.18, (stageH - 24) * 1.6);
+    const pcH = pcW * 0.625 + 16;
+    const below = pin.getBoundingClientRect().bottom - stage.getBoundingClientRect().top - pcH;
+    stage.style.setProperty("--pc-w", `${pcW}px`);
+    device.style.setProperty("--fit", String(Math.min(1, stageH / base)));
+    telas.style.marginBottom = `${-Math.max(0, below - 40)}px`;
+  };
+
+  new ResizeObserver(fitFrames).observe(screen);
+  new ResizeObserver(fitDevice).observe(stage);
+
+  const showDevice = (name) => {
+    if (device.dataset.device === name) return;
+    device.dataset.device = name;
+    tabs.forEach((tab) => tab.setAttribute("aria-selected", String(tab.dataset.device === name)));
+    frames.forEach((frame) => {
+      const active = frame.dataset.screen === name;
+      frame.classList.toggle("is-active", active);
+      frame.toggleAttribute("inert", !active);
+    });
+  };
+
+  const pinDistance = () => telas.offsetHeight - pin.offsetHeight;
+
+  const frameReady = (frame) => {
+    const doc = frame.contentDocument;
+    return Boolean(doc && doc.readyState === "complete" && frame.contentWindow.sola);
+  };
+
+  let tourProgress = 0;
+
+  const playFrame = (frame) => {
+    if (frameReady(frame)) frame.contentWindow.sola.tour(tourProgress);
+  };
+
+  const updateTelas = () => {
+    const scrolled = header.offsetHeight - telas.getBoundingClientRect().top;
+    tourProgress = Math.min(1, Math.max(0, scrolled / pinDistance()));
+    const progress = tourProgress * tabs.length;
+    const index = Math.min(tabs.length - 1, Math.floor(progress));
+    const seg = Math.min(1, progress - index);
+    showDevice(tabs[index].dataset.device);
+    deviceTabs.style.setProperty("--seg", seg.toFixed(3));
+    frames.forEach(playFrame);
+  };
+
+  let ticking = false;
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      updateTelas();
+    });
+  };
+
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate);
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => {
+      const start = telas.getBoundingClientRect().top + window.scrollY - header.offsetHeight;
+      const top = start + pinDistance() * ((index + 0.02) / tabs.length);
+      window.scrollTo({ top, behavior: reduceMotion ? "auto" : "smooth" });
+    });
+  });
+
+  frames.forEach((frame) => {
+    frame.addEventListener("load", () => playFrame(frame));
+  });
+
+  updateTelas();
+}
+
 onScroll();
 window.addEventListener("scroll", onScroll, { passive: true });
 
